@@ -133,15 +133,34 @@ def main() -> int:
     log.info("Branch      : %s", branch)
     log.info("Files       : %d mapping(s)", len(file_mappings))
 
-    # ── 3. Clone target repository ─────────────────────────────────────────
+    # ── 3. Clone target repository (handles empty repos too) ───────────────
     auth_url = build_authenticated_url(target_repo, gh_user, gh_pat)
     clone_dir = script_dir / "_target_repo"
 
     if clone_dir.exists():
         shutil.rmtree(clone_dir)
 
-    run(["git", "clone", "--depth", "1", "--branch", branch, auth_url, str(clone_dir)])
-    log.info("Cloned into: %s", clone_dir)
+    # Try a normal shallow clone first
+    result = run(
+        ["git", "clone", "--depth", "1", "--branch", branch, auth_url, str(clone_dir)],
+        check=False,
+    )
+
+    if result.returncode != 0:
+        log.warning("Shallow clone failed (repo may be empty). Initialising fresh repo...")
+        clone_dir.mkdir(parents=True, exist_ok=True)
+        run(["git", "init", str(clone_dir)])
+        run(["git", "remote", "add", "origin", auth_url], cwd=clone_dir)
+        # Try to fetch; if the remote is truly empty this will fail silently
+        fetch = run(["git", "fetch", "--depth", "1", "origin", branch], cwd=clone_dir, check=False)
+        if fetch.returncode == 0:
+            run(["git", "checkout", "-b", branch, f"origin/{branch}"], cwd=clone_dir)
+        else:
+            # Completely empty remote — create the branch locally
+            run(["git", "checkout", "-b", branch], cwd=clone_dir)
+            log.info("Empty repository detected — will create first commit.")
+
+    log.info("Repository ready at: %s", clone_dir)
 
     # ── 4. Configure git identity inside the cloned repo ──────────────────
     run(["git", "config", "user.name",  gh_user],  cwd=clone_dir)
