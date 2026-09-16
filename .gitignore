@@ -1,0 +1,20 @@
+# Temporary clone directory created by update.py at runtime
+_target_repo/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor settings
+.vscode/
+.idea/
+
+# Environment files (never commit secrets)
+.env
+*.env

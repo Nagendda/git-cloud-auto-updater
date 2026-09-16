@@ -1,0 +1,19 @@
+{
+  "target_repo": "https://github.com/Nagendda/working_project.git",
+  "branch": "main",
+  "commit_message": "Scheduled repository update [auto]",
+  "files": [
+    {
+      "source": "sources/main.py",
+      "target": "main.py"
+    },
+    {
+      "source": "sources/README.md",
+      "target": "README.md"
+    },
+    {
+      "source": "sources/requirements.txt",
+      "target": "requirements.txt"
+    }
+  ]
+}

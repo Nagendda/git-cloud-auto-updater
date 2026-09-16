@@ -1,0 +1,57 @@
+name: Scheduled Repository Update
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Triggers
+# ─────────────────────────────────────────────────────────────────────────────
+on:
+  schedule:
+    # Runs every 2 hours  (minute=0, every 2nd hour, every day)
+    - cron: "0 */2 * * *"
+
+  # Allows you to manually trigger the workflow from the GitHub Actions tab
+  workflow_dispatch:
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Permissions  (read checkout + write to target repo via PAT)
+# ─────────────────────────────────────────────────────────────────────────────
+permissions:
+  contents: read
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Jobs
+# ─────────────────────────────────────────────────────────────────────────────
+jobs:
+  update-files:
+    name: Update files in working_project
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # 1. Check out THIS automation repository (contains sources/ and update.py)
+      - name: Checkout automation repo
+        uses: actions/checkout@v4
+
+      # 2. Set up Python
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 3. Configure global git identity used by the runner
+      - name: Configure git identity
+        run: |
+          git config --global user.name  "${{ secrets.GH_USER }}"
+          git config --global user.email "${{ secrets.GH_EMAIL }}"
+
+      # 4. Run the update script
+      #    Secrets are injected as environment variables — never printed in logs
+      - name: Run update.py
+        env:
+          GH_PAT:   ${{ secrets.GH_PAT }}
+          GH_USER:  ${{ secrets.GH_USER }}
+          GH_EMAIL: ${{ secrets.GH_EMAIL }}
+        run: python update.py
+
+      # 5. Confirm completion
+      - name: Done
+        run: echo "Scheduled update finished at $(date -u)"
