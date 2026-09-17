@@ -188,7 +188,18 @@ def main() -> int:
         log.info("Copying: %s  →  %s", source_rel, target_rel)
         shutil.copy2(str(source_path), str(target_path))
 
-    # ── 6. Check for real changes ──────────────────────────────────────────
+    # ── 6. Write timestamp file — guarantees a real change every run ──────
+    import datetime
+    timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    ts_file = clone_dir / "last-updated.txt"
+    ts_file.write_text(
+        f"Last automated update: {timestamp}\n"
+        f"Pushed by: github.com/{gh_user}\n",
+        encoding="utf-8",
+    )
+    log.info("Timestamp written: %s", timestamp)
+
+    # ── 7. Check for real changes ──────────────────────────────────────────
     if not has_changes(clone_dir):
         log.info("No changes detected — repository is already up to date. Skipping commit.")
         return 0
