@@ -38,10 +38,16 @@ jobs:
           python-version: "3.11"
 
       # 3. Configure global git identity used by the runner
+      #    IMPORTANT: GH_EMAIL must be your real verified GitHub email
+      #    so that commits count as contributions on your profile graph.
       - name: Configure git identity
         run: |
           git config --global user.name  "${{ secrets.GH_USER }}"
           git config --global user.email "${{ secrets.GH_EMAIL }}"
+          git config --global author.name  "${{ secrets.GH_USER }}"
+          git config --global author.email "${{ secrets.GH_EMAIL }}"
+          git config --global committer.name  "${{ secrets.GH_USER }}"
+          git config --global committer.email "${{ secrets.GH_EMAIL }}"
 
       # 4. Run the update script
       #    Secrets are injected as environment variables — never printed in logs
